@@ -10,12 +10,12 @@ pipeline {
         }
         stage('Test') {
             steps {
-                // Your test steps go here
+                sh 'echo "Hello, Jenkins!"'
             }
         }
         stage('Deploy') {
             steps {
-                // Your deployment steps go here
+                sh 'echo "Hello, Jenkins!"'
             }
         }
     }
