@@ -2,20 +2,30 @@ pipeline {
     agent any
 
     stages {
-        stage('build') {
+        stage('Build') {
             steps {
-                echo 'Build stage'
+                // Your build steps go here
+                sh 'echo "Hello, Jenkins!"'
             }
         }
-        stage('deploy') {
+        stage('Test') {
             steps {
-                echo 'Deploy Satge'
+                // Your test steps go here
             }
         }
-        stage('test') {
+        stage('Deploy') {
             steps {
-                echo 'test stage'
+                // Your deployment steps go here
             }
+        }
     }
-}
+
+    post {
+        success {
+            echo 'Pipeline succeeded!'
+        }
+        failure {
+            echo 'Pipeline failed!'
+        }
+    }
 }
