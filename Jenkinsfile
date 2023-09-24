@@ -11,7 +11,7 @@ pipeline {
                 script {
                     def calendar = Calendar.getInstance()
                     def weekOfYear = calendar.get(Calendar.WEEK_OF_YEAR)
-                    if (weekOfYear % 2 == 0) {
+                    if (weekOfYear % 2 == 1) {
                         echo "Today is in an odd week of the year. Proceeding with the build."
                     } else {
                         echo "Today is not in an odd week of the year. Skipping the build."
