@@ -3,20 +3,21 @@ pipeline {
 
     triggers {
         cron('H H * * 2') // Runs every Tuesday
+        cron('H H * * 3') // Runs every Wednesday
     }
 
     stages {
-        stage('Check If Alternate Tuesday') {
+        stage('Check If Odd Week') {
             steps {
                 script {
                     def calendar = Calendar.getInstance()
-                    def dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK)
-                    if (dayOfWeek == Calendar.TUESDAY || dayOfWeek == Calendar.SUNDAY) {
-                        echo "Today is an alternate Tuesday. Proceeding with the build."
+                    def weekOfYear = calendar.get(Calendar.WEEK_OF_YEAR)
+                    if (weekOfYear % 2 == 1) {
+                        echo "Today is in an odd week of the year. Proceeding with the build."
                     } else {
-                        echo "Today is not an alternate Tuesday. Skipping the build."
+                        echo "Today is not in an odd week of the year. Skipping the build."
                         currentBuild.result = 'ABORTED'
-                        error("Build aborted on non-alternate Tuesday.")
+                        error("Build aborted in even weeks.")
                     }
                 }
             }
