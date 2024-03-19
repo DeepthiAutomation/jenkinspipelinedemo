@@ -1,0 +1,14 @@
+import csv
+
+def csv_to_dict(filename):
+    data = []
+    with open(filename, mode='r') as file:
+        csv_reader = csv.DictReader(file)
+        for row in csv_reader:
+            data.append(dict(row))
+    return data
+
+# Example usage:
+filename = 'example.csv'  # Replace 'example.csv' with your CSV file path
+data = csv_to_dict(filename)
+print(data)
