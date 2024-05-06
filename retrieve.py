@@ -39,3 +39,9 @@ json_data = execute_jql_query(jql_query, username, api_token)
 
 # Convert JSON data to CSV
 convert_json_to_csv(json_data, csv_file)
+
+for item in data:
+    start_index = item.find("name=") + len("name=")
+    end_index = item.find(",", start_index)
+    name_value = item[start_index:end_index]
+    print(name_value)
