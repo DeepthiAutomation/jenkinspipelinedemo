@@ -83,4 +83,8 @@ def update_charts(owner_filter):
     status_counts.columns = ['status', 'count']
     pie_fig = px.pie(status_counts, names='status', values='count', title='Distribution of Statuses')
 
-    return bar_fig.update_layout(showlegend=False), pie_fig.update_traces(textposition='inside', textinfo='percent+label'), filtered_df.to_dict(
+    return bar_fig.update_layout(showlegend=False), pie_fig.update_traces(textposition='inside', textinfo='percent+label'), filtered_df.to_dict('records')
+
+
+if __name__ == '__main__':
+    app.run_server(debug=True)
