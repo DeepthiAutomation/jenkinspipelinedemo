@@ -14,12 +14,28 @@ df['work'] = pd.to_numeric(df['work'], errors='coerce')
 app = dash.Dash(__name__)
 
 # Define layout
-app.layout = html.Div(style={'backgroundColor': '#f9f9f9', 'fontFamily': 'Arial, sans-serif'}, children=[
-    html.H1('Dashboard with Bar Chart and Pie Chart', style={'textAlign': 'center', 'marginBottom': '30px', 'color': '#333333', 'fontSize': '32px'}),
+app.layout = html.Div(style={'backgroundImage': 'url("/assets/background_image.jpg")',
+                             'backgroundRepeat': 'no-repeat',
+                             'backgroundSize': 'cover',
+                             'fontFamily': 'Arial, sans-serif',
+                             'color': '#333333'}, children=[
+    html.H1('Dashboard with Bar Chart and Pie Chart', style={'textAlign': 'center', 'marginBottom': '30px', 'fontSize': '36px'}),
+
+    # Filter options
+    html.Div([
+        html.H2('Filter Data by Owner', style={'textAlign': 'center', 'fontSize': '24px'}),
+        dcc.Dropdown(
+            id='owner-filter',
+            options=[{'label': owner, 'value': owner} for owner in df['owner'].unique()],
+            value=df['owner'].unique()[0],  # Default value
+            clearable=False,
+            style={'width': '50%', 'margin': 'auto', 'backgroundColor': '#ffffff', 'color': '#333333', 'fontSize': '18px'}
+        ),
+    ], style={'marginBottom': '30px', 'padding': '20px', 'backgroundColor': '#ffffff', 'borderRadius': '10px'}),
 
     # Data table
     html.Div([
-        html.H2('Data Table', style={'textAlign': 'center', 'color': '#666666', 'fontSize': '24px'}),
+        html.H2('Data Table', style={'textAlign': 'center', 'fontSize': '24px'}),
         dash_table.DataTable(
             id='data-table',
             columns=[{'name': i, 'id': i} for i in df.columns],
@@ -47,15 +63,15 @@ app.layout = html.Div(style={'backgroundColor': '#f9f9f9', 'fontFamily': 'Arial,
     html.Div([
         # Bar chart
         html.Div([
-            html.H2('Bar Chart - Sum of Work per Owner', style={'textAlign': 'center', 'color': '#666666', 'fontSize': '24px'}),
+            html.H2('Bar Chart - Sum of Work per Owner', style={'textAlign': 'center', 'fontSize': '24px'}),
             dcc.Graph(id='bar-chart', config={'displayModeBar': False}),
-        ], style={'width': '70%', 'display': 'inline-block', 'marginTop': '50px', 'marginRight': '5%', 'marginLeft': '15%'}),
+        ], style={'width': '45%', 'display': 'inline-block', 'marginTop': '50px', 'marginRight': '5%', 'marginLeft': '2%'}),
 
         # Pie chart
         html.Div([
-            html.H2('Pie Chart - Distribution of Statuses', style={'textAlign': 'center', 'color': '#666666', 'fontSize': '24px'}),
+            html.H2('Pie Chart - Distribution of Statuses', style={'textAlign': 'center', 'fontSize': '24px'}),
             dcc.Graph(id='pie-chart', config={'displayModeBar': False}),
-        ], style={'width': '70%', 'display': 'inline-block', 'marginTop': '50px', 'marginRight': '5%', 'marginLeft': '15%'}),
+        ], style={'width': '45%', 'display': 'inline-block', 'marginTop': '50px'}),
     ]),
 ])
 
