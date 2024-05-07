@@ -18,7 +18,9 @@ app.layout = html.Div(style={'backgroundImage': 'url("/assets/background_image.j
                              'backgroundRepeat': 'no-repeat',
                              'backgroundSize': 'cover',
                              'fontFamily': 'Arial, sans-serif',
-                             'color': '#333333'}, children=[
+                             'color': '#333333',
+                             'width': '100%',
+                             'height': '100%'}, children=[
     html.H1('Dashboard with Bar Chart and Pie Chart', style={'textAlign': 'center', 'marginBottom': '30px', 'fontSize': '36px'}),
 
     # Filter options
@@ -34,30 +36,7 @@ app.layout = html.Div(style={'backgroundImage': 'url("/assets/background_image.j
     ], style={'marginBottom': '30px', 'padding': '20px', 'backgroundColor': '#ffffff', 'borderRadius': '10px'}),
 
     # Data table
-    html.Div([
-        html.H2('Data Table', style={'textAlign': 'center', 'fontSize': '24px'}),
-        dash_table.DataTable(
-            id='data-table',
-            columns=[{'name': i, 'id': i} for i in df.columns],
-            data=df.to_dict('records'),
-            style_table={'overflowX': 'auto', 'backgroundColor': '#000000'},
-            filter_action="native",
-            page_size=8,
-            style_header={'backgroundColor': '#000000', 'fontWeight': 'bold', 'color': '#ffffff', 'fontSize': '16px'},
-            style_cell={
-                'textAlign': 'left',
-                'color': '#333333',
-                'fontSize': '14px',
-                'fontFamily': 'Arial, sans-serif',
-                'backgroundColor': '#ffffff',
-                'padding': '10px'
-            },
-            style_data_conditional=[
-                {'if': {'row_index': 'odd'}, 'backgroundColor': 'rgb(245, 245, 245)'},
-                {'if': {'column_id': 'owner'}, 'backgroundColor': 'rgb(255, 255, 153)'}  # Highlighting 'owner' column
-            ],
-        ),
-    ], style={'marginBottom': '30px', 'padding': '20px', 'backgroundColor': '#ffffff', 'borderRadius': '10px'}),
+    html.Div(id='data-table-container', style={'marginBottom': '30px', 'padding': '20px', 'backgroundColor': '#ffffff', 'borderRadius': '10px'}),
 
     # Charts
     html.Div([
@@ -76,14 +55,38 @@ app.layout = html.Div(style={'backgroundImage': 'url("/assets/background_image.j
 ])
 
 
-# Callback to update charts based on filtered data
+# Callback to update table and charts based on filtered data
 @app.callback(
-    [Output('bar-chart', 'figure'),
+    [Output('data-table-container', 'children'),
+     Output('bar-chart', 'figure'),
      Output('pie-chart', 'figure')],
     [Input('owner-filter', 'value')]
 )
-def update_charts(owner_filter):
+def update_data(owner_filter):
     filtered_df = df[df['owner'] == owner_filter]
+
+    # Table
+    data_table = dash_table.DataTable(
+        id='data-table',
+        columns=[{'name': i, 'id': i} for i in df.columns],
+        data=filtered_df.to_dict('records'),
+        style_table={'overflowX': 'auto', 'backgroundColor': '#000000'},
+        filter_action="native",
+        page_size=8,
+        style_header={'backgroundColor': '#000000', 'fontWeight': 'bold', 'color': '#ffffff', 'fontSize': '16px'},
+        style_cell={
+            'textAlign': 'left',
+            'color': '#333333',
+            'fontSize': '14px',
+            'fontFamily': 'Arial, sans-serif',
+            'backgroundColor': '#ffffff',
+            'padding': '10px'
+        },
+        style_data_conditional=[
+            {'if': {'row_index': 'odd'}, 'backgroundColor': 'rgb(245, 245, 245)'},
+            {'if': {'column_id': 'owner'}, 'backgroundColor': 'rgb(255, 255, 153)'}  # Highlighting 'owner' column
+        ],
+    )
 
     # Bar chart - Sum of work per owner
     work_sum_df = filtered_df.groupby('owner')['work'].sum().reset_index()  # Aggregate sum of work
@@ -95,7 +98,7 @@ def update_charts(owner_filter):
     status_counts.columns = ['status', 'count']
     pie_fig = px.pie(status_counts, names='status', values='count', title='Distribution of Statuses', width=800, height=500)
 
-    return bar_fig, pie_fig.update_traces(textposition='inside', textinfo='percent+label')
+    return data_table, bar_fig, pie_fig.update_traces(textposition='inside', textinfo='percent+label')
 
 
 if __name__ == '__main__':
