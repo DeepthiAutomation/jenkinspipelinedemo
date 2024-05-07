@@ -22,6 +22,7 @@ app.layout = html.Div([
             options=[{'label': owner, 'value': owner} for owner in df['owner'].unique()],
             value=df['owner'].unique()[0],  # Default value
             clearable=False,
+            style={'width': '50%'}  # Reduce dropdown size
         ),
     ]),
 
@@ -73,17 +74,13 @@ def update_charts(owner_filter):
     filtered_df = df[df['owner'] == owner_filter]
 
     # Bar chart - Sum of work per owner
-    work_sum_df = filtered_df.groupby('owner')['work'].sum().reset_index()
+    work_sum_df = filtered_df.groupby('owner')['work'].sum().reset_index()  # Aggregate sum of work
     bar_fig = px.bar(work_sum_df, x='owner', y='work', title='Sum of Work per Owner',
-                     labels={'owner': 'Owner', 'work': 'Work'}, color='owner')
+                     labels={'owner': 'Owner', 'work': 'Sum of Work'}, color='owner')
 
     # Pie chart - Distribution of statuses
     status_counts = filtered_df['status'].value_counts().reset_index()
     status_counts.columns = ['status', 'count']
     pie_fig = px.pie(status_counts, names='status', values='count', title='Distribution of Statuses')
 
-    return bar_fig.update_layout(showlegend=False), pie_fig.update_traces(textposition='inside', textinfo='percent+label'), filtered_df.to_dict('records')
-
-
-if __name__ == '__main__':
-    app.run_server(debug=True)
+    return bar_fig.update_layout(showlegend=False), pie_fig.update_traces(textposition='inside', textinfo='percent+label'), filtered_df.to_dict(
