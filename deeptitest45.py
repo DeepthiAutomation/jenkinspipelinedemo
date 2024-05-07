@@ -35,13 +35,13 @@ app.layout = html.Div([
         html.Div([
             html.H2('Bar Chart - Sum of Work per Owner', style={'text-align': 'center'}),
             dcc.Graph(id='bar-chart'),
-        ], style={'width': '50%', 'display': 'inline-block', 'margin-top': '50px'}),
+        ], style={'width': '45%', 'display': 'inline-block', 'margin-top': '50px', 'margin-right': '5%'}),
 
         # Pie chart
         html.Div([
             html.H2('Pie Chart - Distribution of Statuses', style={'text-align': 'center'}),
             dcc.Graph(id='pie-chart'),
-        ], style={'width': '50%', 'display': 'inline-block', 'margin-top': '50px'}),
+        ], style={'width': '45%', 'display': 'inline-block', 'margin-top': '50px'}),
     ]),
 
     # Data table
@@ -84,12 +84,15 @@ def update_charts(owner_filter):
     bar_fig = px.bar(work_sum_df, x='owner', y='work', title='Sum of Work per Owner',
                      labels={'owner': 'Owner', 'work': 'Sum of Work'}, color='owner')
 
+    # Customize bar color
+    bar_fig.update_traces(marker_color='#1f77b4')  # Blue color
+
     # Pie chart - Distribution of statuses
     status_counts = filtered_df['status'].value_counts().reset_index()
     status_counts.columns = ['status', 'count']
     pie_fig = px.pie(status_counts, names='status', values='count', title='Distribution of Statuses')
 
-    return bar_fig.update_traces(marker_color='skyblue'), pie_fig.update_traces(textposition='inside', textinfo='percent+label'), filtered_df.to_dict('records')
+    return bar_fig, pie_fig.update_traces(textposition='inside', textinfo='percent+label'), filtered_df.to_dict('records')
 
 
 if __name__ == '__main__':
