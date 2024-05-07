@@ -14,39 +14,39 @@ df['work'] = pd.to_numeric(df['work'], errors='coerce')
 app = dash.Dash(__name__)
 
 # Define layout
-app.layout = html.Div([
-    html.H1('Dashboard with Bar Chart, and Pie Chart', style={'text-align': 'center', 'margin-bottom': '30px'}),
+app.layout = html.Div(style={'backgroundColor': '#f0f0f0', 'fontFamily': 'Arial, sans-serif'}, children=[
+    html.H1('Dashboard with Bar Chart and Pie Chart', style={'textAlign': 'center', 'marginBottom': '30px', 'color': '#333333'}),
 
     # Filter options
     html.Div([
-        html.H2('Filter Data by Owner', style={'text-align': 'center'}),
+        html.H2('Filter Data by Owner', style={'textAlign': 'center', 'color': '#666666'}),
         dcc.Dropdown(
             id='owner-filter',
             options=[{'label': owner, 'value': owner} for owner in df['owner'].unique()],
             value=df['owner'].unique()[0],  # Default value
             clearable=False,
-            style={'width': '50%'}  # Reduce dropdown size
+            style={'width': '50%', 'margin': 'auto', 'backgroundColor': '#ffffff', 'color': '#333333', 'fontFamily': 'Arial, sans-serif'}  # Reduce dropdown size
         ),
-    ]),
+    ], style={'marginBottom': '30px', 'padding': '20px', 'backgroundColor': '#ffffff', 'borderRadius': '10px'}),
 
     # Charts
     html.Div([
         # Bar chart
         html.Div([
-            html.H2('Bar Chart - Sum of Work per Owner', style={'text-align': 'center'}),
+            html.H2('Bar Chart - Sum of Work per Owner', style={'textAlign': 'center', 'color': '#666666'}),
             dcc.Graph(id='bar-chart'),
-        ], style={'width': '45%', 'display': 'inline-block', 'margin-top': '50px', 'margin-right': '5%'}),
+        ], style={'width': '45%', 'display': 'inline-block', 'marginTop': '50px', 'marginRight': '5%'}),
 
         # Pie chart
         html.Div([
-            html.H2('Pie Chart - Distribution of Statuses', style={'text-align': 'center'}),
+            html.H2('Pie Chart - Distribution of Statuses', style={'textAlign': 'center', 'color': '#666666'}),
             dcc.Graph(id='pie-chart'),
-        ], style={'width': '45%', 'display': 'inline-block', 'margin-top': '50px'}),
+        ], style={'width': '45%', 'display': 'inline-block', 'marginTop': '50px'}),
     ]),
 
     # Data table
     html.Div([
-        html.H2('Data Table', style={'text-align': 'center'}),
+        html.H2('Data Table', style={'textAlign': 'center', 'color': '#666666'}),
         dash_table.DataTable(
             id='data-table',
             columns=[{'name': i, 'id': i} for i in df.columns],
@@ -83,9 +83,6 @@ def update_charts(owner_filter):
     work_sum_df = filtered_df.groupby('owner')['work'].sum().reset_index()  # Aggregate sum of work
     bar_fig = px.bar(work_sum_df, x='owner', y='work', title='Sum of Work per Owner',
                      labels={'owner': 'Owner', 'work': 'Sum of Work'}, color='owner')
-
-    # Customize bar color
-    bar_fig.update_traces(marker_color='#1f77b4')  # Blue color
 
     # Pie chart - Distribution of statuses
     status_counts = filtered_df['status'].value_counts().reset_index()
