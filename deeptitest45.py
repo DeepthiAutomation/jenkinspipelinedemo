@@ -2,6 +2,7 @@ import dash
 from dash import dcc, html, Input, Output
 import pandas as pd
 import plotly.express as px
+import dash_table
 
 # Load data
 df = pd.read_csv('your_data.csv')
@@ -11,18 +12,7 @@ app = dash.Dash(__name__)
 
 # Define layout
 app.layout = html.Div([
-    html.H1('Dashboard with Table, Bar Chart, and Pie Chart', style={'text-align': 'center', 'margin-bottom': '30px'}),
-
-    # Data table
-    html.Div([
-        html.H2('Data Table', style={'text-align': 'center'}),
-        dcc.DataTable(
-            id='data-table',
-            columns=[{'name': i, 'id': i} for i in df.columns],
-            data=df.to_dict('records'),
-            style_table={'overflowX': 'auto'},
-        ),
-    ]),
+    html.H1('Dashboard with Bar Chart, and Pie Chart', style={'text-align': 'center', 'margin-bottom': '30px'}),
 
     # Filter options
     html.Div([
@@ -46,13 +36,37 @@ app.layout = html.Div([
         html.H2('Pie Chart - Distribution of Statuses', style={'text-align': 'center'}),
         dcc.Graph(id='pie-chart'),
     ]),
+
+    # Data table
+    html.Div([
+        html.H2('Data Table', style={'text-align': 'center'}),
+        dash_table.DataTable(
+            id='data-table',
+            columns=[{'name': i, 'id': i} for i in df.columns],
+            data=df.to_dict('records'),
+            style_table={'overflowX': 'auto'},
+            filter_action="native",
+            page_size=10,
+            style_data_conditional=[
+                {
+                    'if': {'row_index': 'odd'},
+                    'backgroundColor': 'rgb(248, 248, 248)'
+                }
+            ],
+            style_header={
+                'backgroundColor': 'rgb(230, 230, 230)',
+                'fontWeight': 'bold'
+            }
+        ),
+    ]),
 ])
 
 
 # Callback to update charts based on filtered data
 @app.callback(
     [Output('bar-chart', 'figure'),
-     Output('pie-chart', 'figure')],
+     Output('pie-chart', 'figure'),
+     Output('data-table', 'data')],
     [Input('owner-filter', 'value')]
 )
 def update_charts(owner_filter):
@@ -68,7 +82,7 @@ def update_charts(owner_filter):
     status_counts.columns = ['status', 'count']
     pie_fig = px.pie(status_counts, names='status', values='count', title='Distribution of Statuses')
 
-    return bar_fig.update_layout(showlegend=False), pie_fig.update_traces(textposition='inside', textinfo='percent+label')
+    return bar_fig.update_layout(showlegend=False), pie_fig.update_traces(textposition='inside', textinfo='percent+label'), filtered_df.to_dict('records')
 
 
 if __name__ == '__main__':
