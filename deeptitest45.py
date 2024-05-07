@@ -7,6 +7,9 @@ import dash_table
 # Load data
 df = pd.read_csv('your_data.csv')
 
+# Ensure 'work' column is numeric
+df['work'] = pd.to_numeric(df['work'], errors='coerce')
+
 # Initialize Dash app
 app = dash.Dash(__name__)
 
