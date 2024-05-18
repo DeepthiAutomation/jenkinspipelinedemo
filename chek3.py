@@ -1,4 +1,3 @@
-
 import dash
 from dash import html, dcc
 from dash.dependencies import Input, Output
@@ -42,9 +41,9 @@ app.layout = html.Div(
 # Callback to populate dropdown options
 @app.callback(
     Output('csv-dropdown', 'options'),
-    [Input('interval-component', 'n_intervals')]  # Add any other input triggers as needed
+    [Input('csv-dropdown', 'value')]
 )
-def update_dropdown_options(n_intervals):
+def update_dropdown_options(selected_csv_column):
     # Read CSV data
     csv_path = 'your_csv_file.csv'  # Specify the path to your CSV file
     csv_data = read_csv_data(csv_path)
