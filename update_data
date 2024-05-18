@@ -113,4 +113,22 @@ def update_data(n_clicks, n_intervals, selected_assignee):
         'Assignee': issue['fields']['assignee']['displayName'] if issue['fields']['assignee'] else 'Unassigned',
         'Status': issue['fields']['status']['name'],
         'Sprint': issue['fields'][CUSTOM_FIELD_SPRINT][0]['name'] if issue['fields'].get(CUSTOM_FIELD_SPRINT) else 'None',
-        'Story Points': issue['fields'].get(CUSTOM_FIELD_ST
+        'Story Points': issue['fields'].get(CUSTOM_FIELD_STORY_POINTS, 'None'),
+        'Epic Link': issue['fields'].get(CUSTOM_FIELD_EPIC_LINK, 'None')
+    } for issue in all_issues])
+
+    return html.Div([
+        html.H3(f"Found {len(all_issues)} issues:"),
+        html.Table([
+            html.Thead(html.Tr([html.Th(col) for col in df.columns])),
+            html.Tbody([
+                html.Tr([
+                    html.Td(df.iloc[i][col]) for col in df.columns
+                ]) for i in range(len(df))
+            ])
+        ])
+    ])
+
+# Run the app
+if __name__ == '__main__':
+    app.run_server(debug=True)
