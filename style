@@ -11,3 +11,9 @@ style={
                     'cursor': 'pointer',
                     'borderRadius': '5px'
                 }
+ style={
+        'backgroundImage': 'url("/assets/background_image.jpg")',  # URL to your background image
+        'backgroundSize': 'cover',
+        'backgroundColor': '#ffffff',  # Fallback background color
+        'padding': '50px'
+    },
