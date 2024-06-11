@@ -1,0 +1,13 @@
+style={
+                    'fontSize': '18px',
+                    'color': 'white',
+                    'backgroundColor': '#007BFF',  # Blue background color
+                    'border': 'none',
+                    'padding': '10px 20px',
+                    'textAlign': 'center',
+                    'textDecoration': 'none',
+                    'display': 'inline-block',
+                    'margin': '4px 2px',
+                    'cursor': 'pointer',
+                    'borderRadius': '5px'
+                }
