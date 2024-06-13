@@ -1,51 +1,80 @@
+import dash
+import dash_core_components as dcc
+import dash_html_components as html
+import dash_table
+from dash.dependencies import Input, Output, State
 import requests
+import sqlite3
+import pandas as pd
+import dash_bootstrap_components as dbc
 
-# Function to fetch and store projects
-def fetch_and_store_projects(jira_url, auth):
-    projects_url = f'{jira_url}/rest/api/2/project'
-    response = requests.get(projects_url, auth=auth)
-    projects = response.json()
-    
+# Initialize the Dash app
+app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
+server = app.server  # Expose the server variable for gunicorn
+
+# Fetch projects from the database
+def get_projects():
     conn = sqlite3.connect('jira_dashboard.db')
-    cursor = conn.cursor()
-    
-    # Truncate the projects table
-    cursor.execute('DELETE FROM projects')
-    
-    for project in projects:
-        cursor.execute('''
-        INSERT INTO projects (url, project_id, project_name)
-        VALUES (?, ?, ?)
-        ''', (jira_url, project['id'], project['name']))
-    
-    conn.commit()
+    df = pd.read_sql_query('SELECT DISTINCT project_name FROM projects', conn)
     conn.close()
+    return df['project_name'].tolist()
 
-# Function to fetch and store custom fields
-def fetch_and_store_custom_fields(jira_url, auth):
-    custom_fields_url = f'{jira_url}/rest/api/2/field'
-    response = requests.get(custom_fields_url, auth=auth)
-    fields = response.json()
+app.layout = html.Div([
+    html.H1("JIRA Dashboard"),
     
-    conn = sqlite3.connect('jira_dashboard.db')
-    cursor = conn.cursor()
+    html.Label("Select Projects:"),
+    dcc.Dropdown(
+        id='project-dropdown',
+        options=[{'label': project, 'value': project} for project in get_projects()],
+        multi=True
+    ),
     
-    # Truncate the custom_fields table
-    cursor.execute('DELETE FROM custom_fields')
+    html.Label("Enter Labels (comma separated):"),
+    dcc.Input(id='label-input', type='text', value=''),
     
-    for field in fields:
-        cursor.execute('''
-        INSERT INTO custom_fields (url, field_id, field_name)
-        VALUES (?, ?, ?)
-        ''', (jira_url, field['id'], field['name']))
+    html.Button('Get Stories', id='get-stories-button', n_clicks=0),
     
-    conn.commit()
-    conn.close()
+    dash_table.DataTable(
+        id='stories-table',
+        columns=[{'name': 'Story Key', 'id': 'key'}, {'name': 'Summary', 'id': 'summary'}],
+        data=[]
+    )
+])
 
-# Example usage
-jira_urls = ['https://jira.example.com']
-auth = ('username', 'password')
+@app.callback(
+    Output('stories-table', 'data'),
+    [Input('get-stories-button', 'n_clicks')],
+    [State('project-dropdown', 'value'), State('label-input', 'value')]
+)
+def get_stories(n_clicks, projects, labels_input):
+    if n_clicks == 0:
+        return []
+    
+    if not projects:
+        return []
+    
+    # Parse the labels input
+    labels = [label.strip() for label in labels_input.split(',') if label.strip()]
+    
+    # Generate JQL query
+    jql = ' AND '.join([f'project = "{project}"' for project in projects])
+    if labels:
+        jql += ' AND ' + ' AND '.join([f'labels = "{label}"' for label in labels])
+    jql += ' AND status = "Open" AND sprint in openSprints()'
+    
+    # Fetch stories from JIRA
+    stories = []
+    for jira_url in jira_urls:
+        search_url = f'{jira_url}/rest/api/2/search'
+        response = requests.get(search_url, params={'jql': jql}, auth=auth)
+        issues = response.json().get('issues', [])
+        for issue in issues:
+            stories.append({
+                'key': issue['key'],
+                'summary': issue['fields']['summary']
+            })
+    
+    return stories
 
-for url in jira_urls:
-    fetch_and_store_projects(url, auth)
-    fetch_and_store_custom_fields(url, auth)
+if __name__ == '__main__':
+    app.run_server(debug=True)
