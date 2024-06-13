@@ -1,27 +1,51 @@
-import sqlite3
+import requests
 
-# Connect to SQLite database (or create it if it doesn't exist)
-conn = sqlite3.connect('jira_dashboard.db')
-cursor = conn.cursor()
+# Function to fetch and store projects
+def fetch_and_store_projects(jira_url, auth):
+    projects_url = f'{jira_url}/rest/api/2/project'
+    response = requests.get(projects_url, auth=auth)
+    projects = response.json()
+    
+    conn = sqlite3.connect('jira_dashboard.db')
+    cursor = conn.cursor()
+    
+    # Truncate the projects table
+    cursor.execute('DELETE FROM projects')
+    
+    for project in projects:
+        cursor.execute('''
+        INSERT INTO projects (url, project_id, project_name)
+        VALUES (?, ?, ?)
+        ''', (jira_url, project['id'], project['name']))
+    
+    conn.commit()
+    conn.close()
 
-# Create tables
-cursor.execute('''
-CREATE TABLE IF NOT EXISTS projects (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    url TEXT,
-    project_id TEXT,
-    project_name TEXT
-)
-''')
+# Function to fetch and store custom fields
+def fetch_and_store_custom_fields(jira_url, auth):
+    custom_fields_url = f'{jira_url}/rest/api/2/field'
+    response = requests.get(custom_fields_url, auth=auth)
+    fields = response.json()
+    
+    conn = sqlite3.connect('jira_dashboard.db')
+    cursor = conn.cursor()
+    
+    # Truncate the custom_fields table
+    cursor.execute('DELETE FROM custom_fields')
+    
+    for field in fields:
+        cursor.execute('''
+        INSERT INTO custom_fields (url, field_id, field_name)
+        VALUES (?, ?, ?)
+        ''', (jira_url, field['id'], field['name']))
+    
+    conn.commit()
+    conn.close()
 
-cursor.execute('''
-CREATE TABLE IF NOT EXISTS custom_fields (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    url TEXT,
-    field_id TEXT,
-    field_name TEXT
-)
-''')
+# Example usage
+jira_urls = ['https://jira.example.com']
+auth = ('username', 'password')
 
-conn.commit()
-conn.close()
+for url in jira_urls:
+    fetch_and_store_projects(url, auth)
+    fetch_and_store_custom_fields(url, auth)
