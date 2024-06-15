@@ -25,7 +25,7 @@ def get_projects():
 # Fetch custom fields from the database
 def get_custom_fields():
     conn = sqlite3.connect('jira_dashboard.db')
-    df = pd.read_sql_query('SELECT project_name, sprint_field, story_points_field, epic_link_field FROM customfields', conn)
+    df = pd.read_sql_query('SELECT url, field_id, field_name FROM customfields', conn)
     conn.close()
     return df
 
@@ -81,19 +81,19 @@ def get_stories(n_clicks, selected_projects, labels_input):
     error_message = ''
     
     if selected_projects:
-        # Create a dictionary to map projects to their URLs and custom fields
+        # Create a dictionary to map projects to their URLs
         project_to_url = {row['project_name']: row['url'] for _, row in projects_df.iterrows()}
-        project_to_custom_fields = custom_fields_df.set_index('project_name').T.to_dict('dict')
         
         for project in selected_projects:
             jira_url = project_to_url.get(project)
             if not jira_url:
                 continue
             
-            custom_fields = project_to_custom_fields.get(project, {})
-            sprint_field = custom_fields.get('sprint_field', 'customfield_10007')
-            story_points_field = custom_fields.get('story_points_field', 'customfield_10004')
-            epic_link_field = custom_fields.get('epic_link_field', 'customfield_10008')
+            # Get the custom fields for the given URL
+            custom_fields = custom_fields_df[custom_fields_df['url'] == jira_url]
+            sprint_field = custom_fields[custom_fields['field_name'] == 'Sprint']['field_id'].values[0]
+            story_points_field = custom_fields[custom_fields['field_name'] == 'Story Points']['field_id'].values[0]
+            epic_link_field = custom_fields[custom_fields['field_name'] == 'Epic Link']['field_id'].values[0]
             
             # Construct JQL query
             jql_parts = [f'project = "{project}"']
@@ -131,6 +131,12 @@ def get_stories(n_clicks, selected_projects, labels_input):
         urls = projects_df['url'].unique()
         
         for jira_url in urls:
+            # Get the custom fields for the given URL
+            custom_fields = custom_fields_df[custom_fields_df['url'] == jira_url]
+            sprint_field = custom_fields[custom_fields['field_name'] == 'Sprint']['field_id'].values[0]
+            story_points_field = custom_fields[custom_fields['field_name'] == 'Story Points']['field_id'].values[0]
+            epic_link_field = custom_fields[custom_fields['field_name'] == 'Epic Link']['field_id'].values[0]
+            
             # Construct JQL query
             jql_parts = []
             
@@ -143,16 +149,13 @@ def get_stories(n_clicks, selected_projects, labels_input):
             jql = ' AND '.join(jql_parts)
             
             # Fetch stories from JIRA
+            search_url = f'{jira_url}/rest/api/2/search'
             response = requests.get(search_url, params={'jql': jql}, auth=auth)
             if response.status_code == 200:
                 issues = response.json().get('issues', [])
                 for issue in issues:
                     fields = issue['fields']
                     project_name = fields.get('project', {}).get('name', 'Unknown')
-                    custom_fields = project_to_custom_fields.get(project_name, {})
-                    sprint_field = custom_fields.get('sprint_field', 'customfield_10007')
-                    story_points_field = custom_fields.get('story_points_field', 'customfield_10004')
-                    epic_link_field = custom_fields.get('epic_link_field', 'customfield_10008')
 
                     story = {
                         'project': project_name,
