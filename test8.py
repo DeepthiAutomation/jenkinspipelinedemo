@@ -64,8 +64,21 @@ app.layout = html.Div([
             multi=True
         ),
         
-        html.Label("Enter Labels (comma separated):"),
-        dcc.Input(id='label-input', type='text', value=''),
+        html.Label("Select Assignee:"),
+        dcc.Dropdown(
+            id='assignee-dropdown',
+            multi=True
+        ),
+        
+        html.Label("Enter Filter (Label, Epic, Assignee, Reporter, Sprint):"),
+        dcc.Input(id='filter-input', type='text', value=''),
+        
+        dcc.Checklist(
+            id='open-sprints-checkbox',
+            options=[{'label': 'Open Sprints Only', 'value': 'openSprints'}],
+            value=['openSprints'],
+            style={'marginTop': '10px'}
+        ),
         
         html.Button('Get Stories', id='get-stories-button', n_clicks=0, className='btn btn-success', style={'marginTop': '10px'}),
     ], style={'padding': '20px'}),
@@ -105,7 +118,8 @@ app.layout = html.Div([
 ])
 
 @app.callback(
-    [Output('stories-table', 'data'), 
+    [Output('assignee-dropdown', 'options'),
+     Output('stories-table', 'data'), 
      Output('error-message', 'children'),
      Output('assignee-storypoints-chart', 'figure'),
      Output('assignee-storypoints-chart', 'style'),
@@ -114,14 +128,15 @@ app.layout = html.Div([
      Output('assignee-status-chart', 'figure'),
      Output('assignee-status-chart', 'style')],
     [Input('get-stories-button', 'n_clicks')],
-    [State('project-dropdown', 'value'), State('label-input', 'value')]
+    [State('project-dropdown', 'value'), State('assignee-dropdown', 'value'), State('filter-input', 'value'), State('open-sprints-checkbox', 'value')]
 )
-def get_stories(n_clicks, selected_projects, labels_input):
+def get_stories(n_clicks, selected_projects, selected_assignees, filter_input, open_sprints):
     if n_clicks == 0:
-        return [], '', {}, {'display': 'none'}, {}, {'display': 'none'}, {}, {'display': 'none'}
+        return [], [], '', {}, {'display': 'none'}, {}, {'display': 'none'}, {}, {'display': 'none'}
     
-    # Parse the labels input
-    labels = [label.strip() for label in labels_input.split(',') if label.strip()]
+    filter_input = filter_input.strip()
+    filter_type, *filter_values = filter_input.split(':', 1)
+    filter_values = filter_values[0].strip().split(',') if filter_values else []
     
     stories = []
     error_message = ''
@@ -144,11 +159,26 @@ def get_stories(n_clicks, selected_projects, labels_input):
             # Construct JQL query
             jql_parts = [f'project = "{project}"']
             
-            if labels:
-                label_list = ', '.join([f'"{label}"' for label in labels])
-                jql_parts.append(f'labels IN ({label_list})')
+            if selected_assignees:
+                assignee_list = ', '.join([f'"{assignee}"' for assignee in selected_assignees])
+                jql_parts.append(f'assignee IN ({assignee_list})')
             
-            jql_parts.append('status = "Open" AND sprint in openSprints()')
+            if filter_values:
+                if filter_type.lower() == 'label':
+                    filter_list = ', '.join([f'"{value}"' for value in filter_values])
+                    jql_parts.append(f'labels IN ({filter_list})')
+                elif filter_type.lower() == 'epic':
+                    filter_list = ', '.join([f'"{value}"' for value in filter_values])
+                    jql_parts.append(f'epicLink IN ({filter_list})')
+                elif filter_type.lower() == 'reporter':
+                    filter_list = ', '.join([f'"{value}"' for value in filter_values])
+                    jql_parts.append(f'reporter IN ({filter_list})')
+                elif filter_type.lower() == 'sprint':
+                    filter_list = ', '.join([f'"{value}"' for value in filter_values])
+                    jql_parts.append(f'sprint IN ({filter_list})')
+            
+            if open_sprints:
+                jql_parts.append('sprint in openSprints()')
             
             jql = ' AND '.join(jql_parts)
             
@@ -186,11 +216,26 @@ def get_stories(n_clicks, selected_projects, labels_input):
             # Construct JQL query
             jql_parts = []
             
-            if labels:
-                label_list = ', '.join([f'"{label}"' for label in labels])
-                jql_parts.append(f'labels IN ({label_list})')
+            if selected_assignees:
+                assignee_list = ', '.join([f'"{assignee}"' for assignee in selected_assignees])
+                jql_parts.append(f'assignee IN ({assignee_list})')
             
-            jql_parts.append('status = "Open" AND sprint in openSprints()')
+            if filter_values:
+                if filter_type.lower() == 'label':
+                    filter_list = ', '.join([f'"{value}"' for value in filter_values])
+                    jql_parts.append(f'labels IN ({filter_list})')
+                elif filter_type.lower() == 'epic':
+                    filter_list = ', '.join([f'"{value}"' for value in filter_values])
+                    jql_parts.append(f'epicLink IN ({filter_list})')
+                elif filter_type.lower() == 'reporter':
+                    filter_list = ', '.join([f'"{value}"' for value in filter_values])
+                    jql_parts.append(f'reporter IN ({filter_list})')
+                elif filter_type.lower() == 'sprint':
+                    filter_list = ', '.join([f'"{value}"' for value in filter_values])
+                    jql_parts.append(f'sprint IN ({filter_list})')
+            
+            if open_sprints:
+                jql_parts.append('sprint in openSprints()')
             
             jql = ' AND '.join(jql_parts)
             
@@ -251,7 +296,10 @@ def get_stories(n_clicks, selected_projects, labels_input):
         fig_assignee_status = {}
         charts_style = {'display': 'none'}
 
-    return stories, error_message, fig_assignee_storypoints, charts_style, fig_status_count, charts_style, fig_assignee_status, charts_style
+    # Populate Assignee Dropdown options
+    assignee_options = [{'label': assignee, 'value': assignee} for assignee in df_stories['assignee'].unique()]
+
+    return assignee_options, stories, error_message, fig_assignee_storypoints, charts_style, fig_status_count, charts_style, fig_assignee_status, charts_style
 
 if __name__ == '__main__':
     app.run_server(debug=True)
