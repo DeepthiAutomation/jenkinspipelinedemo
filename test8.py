@@ -98,10 +98,10 @@ app.layout = html.Div([
     html.Div(id='error-message', style={'color': 'red', 'padding': '10px'}),
     
     html.Div([
-        dcc.Graph(id='assignee-storypoints-chart'),
-        dcc.Graph(id='status-count-chart'),
-        dcc.Graph(id='assignee-status-chart')
-    ], style={'display': 'none'})
+        dcc.Graph(id='assignee-storypoints-chart', style={'display': 'none'}),
+        dcc.Graph(id='status-count-chart', style={'display': 'none'}),
+        dcc.Graph(id='assignee-status-chart', style={'display': 'none'})
+    ])
 ])
 
 @app.callback(
