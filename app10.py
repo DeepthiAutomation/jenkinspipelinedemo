@@ -114,17 +114,11 @@ app.layout = html.Div([
     html.Div([
         dcc.Graph(id='assignee-storypoints-chart', style={'display': 'none'}),
         dcc.Graph(id='status-count-chart', style={'display': 'none'}),
-        dcc.Graph(id='assignee-status-chart', style={'display': 'none'})
-    ]),
-    
-    html.Div([
+        dcc.Graph(id='assignee-status-chart', style={'display': 'none'}),
         dcc.Graph(id='reporter-count-chart', style={'display': 'none'}),
         dcc.Graph(id='epic-count-chart', style={'display': 'none'}),
         dcc.Graph(id='created-quarter-count-chart', style={'display': 'none'}),
-        dcc.Graph(id='missing-epicname-count-chart', style={'display': 'none'})
-    ]),
-    
-    html.Div([
+        dcc.Graph(id='missing-epicname-count-chart', style={'display': 'none'}),
         dcc.Graph(id='status-storypoints-pie', style={'display': 'none'}),
         dcc.Graph(id='epic-storypoints-pie', style={'display': 'none'}),
         dcc.Graph(id='missing-fields-pie', style={'display': 'none'})
@@ -136,23 +130,23 @@ app.layout = html.Div([
      Output('stories-table', 'data'), 
      Output('error-message', 'children'),
      Output('assignee-storypoints-chart', 'figure'),
-     Output('assignee-storypoints-chart', 'style'),
      Output('status-count-chart', 'figure'),
-     Output('status-count-chart', 'style'),
      Output('assignee-status-chart', 'figure'),
-     Output('assignee-status-chart', 'style'),
      Output('status-storypoints-pie', 'figure'),
-     Output('status-storypoints-pie', 'style'),
      Output('epic-storypoints-pie', 'figure'),
-     Output('epic-storypoints-pie', 'style'),
      Output('missing-fields-pie', 'figure'),
+     Output('assignee-storypoints-chart', 'style'),
+     Output('status-count-chart', 'style'),
+     Output('assignee-status-chart', 'style'),
+     Output('status-storypoints-pie', 'style'),
+     Output('epic-storypoints-pie', 'style'),
      Output('missing-fields-pie', 'style')],
     [Input('get-stories-button', 'n_clicks')],
     [State('project-dropdown', 'value'), State('assignee-dropdown', 'value'), State('filter-input', 'value'), State('open-sprints-checkbox', 'value')]
 )
 def get_stories(n_clicks, selected_projects, selected_assignees, filter_input, open_sprints):
     if n_clicks == 0:
-        return [], [], '', {}, {'display': 'none'}, {}, {'display': 'none'}, {}, {'display': 'none'}, {}, {'display': 'none'}, {}, {'display': 'none'}, {}, {'display': 'none'}
+        return [], [], '', {}, {}, {}, {}, {}, {}, {'display': 'none'}, {'display': 'none'}, {'display': 'none'}, {'display': 'none'}, {'display': 'none'}, {'display': 'none'}
     
     filter_input = filter_input.strip()
     filter_type, *filter_values = filter_input.split(':', 1)
@@ -215,19 +209,20 @@ def get_stories(n_clicks, selected_projects, selected_assignees, filter_input, o
                     'project': project,
                     'key': f"[{issue['key']}]({jira_url}/browse/{issue['key']})",
                     'summary': fields.get('summary'),
-                    'assignee': fields.get('assignee', {}).get('displayName'),
-                    'status': fields.get('status', {}).get('name'),
-                    'sprint': fields.get(sprint_field, {}).get('name'),
-                    'story_points': fields.get(story_points_field),
-                    'epic_link': fields.get(epic_link_field)
+                    'assignee': fields.get('assignee', {}).get('displayName', 'Unassigned'),
+                    'status': fields.get('status', {}).get('name', 'Unknown'),
+                    'sprint': fields.get(sprint_field, {}).get('name', 'No Sprint') if sprint_field in fields else 'No Sprint',
+                    'story_points': fields.get(story_points_field, 'No Story Points'),
+                    'epic_link': fields.get(epic_link_field, 'No Epic Link')
                 }
                 stories.append(story)
     
     if not stories:
-        return [], [], error_message, {}, {'display': 'none'}, {}, {'display': 'none'}, {}, {'display': 'none'}, {}, {'display': 'none'}, {}, {'display': 'none'}, {}, {'display': 'none'}
+        return [], [], error_message, {}, {}, {}, {}, {}, {}, {'display': 'none'}, {'display': 'none'}, {'display': 'none'}, {'display': 'none'}, {'display': 'none'}, {'display': 'none'}
     
     df = pd.DataFrame(stories)
     
+    # Bar charts
     assignee_storypoints_fig = px.bar(df, x='assignee', y='story_points', title='Assignee vs Story Points')
     status_count_fig = px.bar(df, x='status', title='Status vs Count')
     assignee_status_fig = px.bar(df, x='assignee', color='status', barmode='group', title='Assignee vs Status Count')
@@ -237,37 +232,37 @@ def get_stories(n_clicks, selected_projects, selected_assignees, filter_input, o
     epic_storypoints_pie = px.pie(df, names='epic_link', values='story_points', title='Story Points by Epic')
     
     missing_fields_count = {
-        'No Epic Link': len(df[df['epic_link'].isnull()]),
-        'No Story Points': len(df[df['story_points'].isnull()]),
+        'No Epic Link': len(df[df['epic_link'] == 'No Epic Link']),
+        'No Story Points': len(df[df['story_points'] == 'No Story Points']),
         'No Acceptance Criteria': len(df[df['summary'].str.contains('Acceptance Criteria') == False]),
-        'Unassigned': len(df[df['assignee'].isnull()])
+        'Unassigned': len(df[df['assignee'] == 'Unassigned'])
     }
     missing_fields_pie = px.pie(names=list(missing_fields_count.keys()), values=list(missing_fields_count.values()), title='Missing Fields Count')
     
     assignees = [{'label': assignee, 'value': assignee} for assignee in df['assignee'].unique()]
     
-    return (assignees, stories, '', assignee_storypoints_fig, {'display': 'block'}, 
-            status_count_fig, {'display': 'block'}, assignee_status_fig, {'display': 'block'},
-            status_storypoints_pie, {'display': 'block'}, epic_storypoints_pie, {'display': 'block'}, missing_fields_pie, {'display': 'block'})
+    return (assignees, stories, '', assignee_storypoints_fig, status_count_fig, assignee_status_fig,
+            status_storypoints_pie, epic_storypoints_pie, missing_fields_pie,
+            {'display': 'block'}, {'display': 'block'}, {'display': 'block'}, {'display': 'block'}, {'display': 'block'}, {'display': 'block'})
 
 @app.callback(
     [Output('assignee-dropdown', 'options'),
      Output('stories-table', 'data'), 
      Output('error-message', 'children'),
      Output('reporter-count-chart', 'figure'),
-     Output('reporter-count-chart', 'style'),
      Output('epic-count-chart', 'figure'),
-     Output('epic-count-chart', 'style'),
      Output('created-quarter-count-chart', 'figure'),
-     Output('created-quarter-count-chart', 'style'),
      Output('missing-epicname-count-chart', 'figure'),
+     Output('reporter-count-chart', 'style'),
+     Output('epic-count-chart', 'style'),
+     Output('created-quarter-count-chart', 'style'),
      Output('missing-epicname-count-chart', 'style')],
     [Input('get-backlogs-button', 'n_clicks')],
     [State('project-dropdown', 'value'), State('assignee-dropdown', 'value'), State('filter-input', 'value')]
 )
 def get_backlogs(n_clicks, selected_projects, selected_assignees, filter_input):
     if n_clicks == 0:
-        return [], [], '', {}, {'display': 'none'}, {}, {'display': 'none'}, {}, {'display': 'none'}, {}, {'display': 'none'}
+        return [], [], '', {}, {}, {}, {}, {'display': 'none'}, {'display': 'none'}, {'display': 'none'}, {'display': 'none'}
     
     filter_input = filter_input.strip()
     filter_type, *filter_values = filter_input.split(':', 1)
@@ -334,7 +329,7 @@ def get_backlogs(n_clicks, selected_projects, selected_assignees, filter_input):
                 backlogs.append(backlog)
     
     if not backlogs:
-        return [], [], error_message, {}, {'display': 'none'}, {}, {'display': 'none'}, {}, {'display': 'none'}, {}, {'display': 'none'}
+        return [], [], error_message, {}, {}, {}, {}, {'display': 'none'}, {'display': 'none'}, {'display': 'none'}, {'display': 'none'}
     
     df = pd.DataFrame(backlogs)
     
@@ -346,8 +341,8 @@ def get_backlogs(n_clicks, selected_projects, selected_assignees, filter_input):
     
     assignees = [{'label': assignee, 'value': assignee} for assignee in df['assignee'].unique()]
     
-    return (assignees, backlogs, '', reporter_count_fig, {'display': 'block'}, 
-            epic_count_fig, {'display': 'block'}, created_quarter_count_fig, {'display': 'block'}, missing_epicname_count_fig, {'display': 'block'})
+    return (assignees, backlogs, '', reporter_count_fig, epic_count_fig, created_quarter_count_fig, missing_epicname_count_fig,
+            {'display': 'block'}, {'display': 'block'}, {'display': 'block'}, {'display': 'block'})
 
 if __name__ == '__main__':
     app.run_server(debug=True)
