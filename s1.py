@@ -144,3 +144,98 @@ layout = html.Div([
 def get_stories(n_clicks, selected_projects, selected_assignees, filter_input, open_sprints):
     if n_clicks == 0:
         return [], [], '', {}, {}, {}, {}, {}, {}, {'display': 'none'}, {'display': 'none'}, {'display': 'none'}, {'display': 'none'}, {'display': 'none'}, {'display': 'none'}
+    
+    filter_input = filter_input.strip()
+    filter_type, *filter_values = filter_input.split(':', 1)
+    filter_values = filter_values[0].strip().split(',') if filter_values else []
+    
+    stories = []
+    error_message = ''
+    
+    if selected_projects:
+        # Create a dictionary to map projects to their URLs
+        project_to_url = {row['project_name']: row['url'] for _, row in projects_df.iterrows()}
+        
+        for project in selected_projects:
+            jira_url = project_to_url.get(project)
+            if not jira_url:
+                continue
+            
+            # Get the custom fields for the given URL
+            custom_fields = custom_fields_df[custom_fields_df['url'] == jira_url]
+            story_points_field = custom_fields[custom_fields['field_name'] == 'Story Points']['field_id'].values[0]
+            epic_link_field = custom_fields[custom_fields['field_name'] == 'Epic Link']['field_id'].values[0]
+            
+            # Construct JQL query
+            jql_parts = [f'project = "{project}"']
+            
+            if selected_assignees:
+                assignee_list = ', '.join([f'"{assignee}"' for assignee in selected_assignees])
+                jql_parts.append(f'assignee IN ({assignee_list})')
+            
+            if filter_values:
+                if filter_type.lower() == 'label':
+                    filter_list = ', '.join([f'"{value}"' for value in filter_values])
+                    jql_parts.append(f'labels IN ({filter_list})')
+                elif filter_type.lower() == 'epic':
+                    filter_list = ', '.join([f'"{value}"' for value in filter_values])
+                    jql_parts.append(f'epicLink IN ({filter_list})')
+                elif filter_type.lower() == 'reporter':
+                    filter_list = ', '.join([f'"{value}"' for value in filter_values])
+                    jql_parts.append(f'reporter IN ({filter_list})')
+                elif filter_type.lower() == 'sprint':
+                    filter_list = ', '.join([f'"{value}"' for value in filter_values])
+                    jql_parts.append(f'sprint IN ({filter_list})')
+            
+            if open_sprints:
+                jql_parts.append('sprint in openSprints()')
+            
+            jql = ' AND '.join(jql_parts)
+            
+            response = requests.get(f'{jira_url}/rest/api/2/search?jql={jql}&fields=key,summary,assignee,status,{story_points_field},{epic_link_field}', auth=auth)
+            
+            if response.status_code != 200:
+                error_message = f"Error fetching data from {jira_url}: {response.content}"
+                continue
+            
+            issues = response.json().get('issues', [])
+            for issue in issues:
+                fields = issue['fields']
+                story = {
+                    'project': project,
+                    'key': f"[{issue['key']}]({jira_url}/browse/{issue['key']})",
+                    'summary': fields.get('summary'),
+                    'assignee': fields.get('assignee', {}).get('displayName', 'Unassigned'),
+                    'status': fields.get('status', {}).get('name', 'Unknown'),
+                    'story_points': fields.get(story_points_field, 'No Story Points'),
+                    'epic_link': fields.get(epic_link_field, 'No Epic Link')
+                }
+                stories.append(story)
+    
+    if not stories:
+        return [], [], error_message, {}, {}, {}, {}, {}, {}, {'display': 'none'}, {'display': 'none'}, {'display': 'none'}, {'display': 'none'}, {'display': 'none'}, {'display': 'none'}
+    
+    df = pd.DataFrame(stories)
+    
+    # Bar charts
+    assignee_storypoints_fig = px.bar(df, x='assignee', y='story_points', title='Assignee vs Story Points', color='assignee')
+    status_count_fig = px.bar(df, x='status', title='Status vs Count', color='status')
+    assignee_status_fig = px.bar(df, x='assignee', color='status', barmode='group', title='Assignee vs Status Count')
+    
+    # Pie charts
+    status_storypoints_pie = px.pie(df, names='status', values='story_points', title='Story Points by Status')
+    epic_storypoints_pie = px.pie(df, names='epic_link', values='story_points', title='Story Points by Epic')
+    
+    missing_fields_count = {
+        'No Epic Link': len(df[df['epic_link'] == 'No Epic Link']),
+        'No Story Points': len(df[df['story_points'] == 'No Story Points']),
+        'No Acceptance Criteria': len(df[df['summary'].str.contains('Acceptance Criteria') == False]),
+        'Unassigned': len(df[df['assignee'] == 'Unassigned'])
+    }
+    missing_fields_pie = px.pie(names=list(missing_fields_count.keys()), values=list(missing_fields_count.values()), title='Missing Fields Count')
+    
+    assignees = [{'label': assignee, 'value': assignee} for assignee in df['assignee'].unique()]
+    
+    return (assignees, stories, '', assignee_storypoints_fig, status_count_fig, assignee_status_fig,
+            status_storypoints_pie, epic_storypoints_pie, missing_fields_pie,
+            {'display': 'block'}, {'display': 'block'}, {'display': 'block'}, {'display': 'block'}, {'display': 'block'}, {'display': 'block'})
