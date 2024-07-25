@@ -11,8 +11,34 @@ driver.get('http://example.com')
 tabindex_value = 'your_tabindex_value'
 element = driver.find_element(By.CSS_SELECTOR, f'[tabindex="{tabindex_value}"]')
 
-# Do something with the element (e.g., click it, extract text, etc.)
-print(element.text)
+# Click the element to open the pop-up
+element.click()
 
-# Close the browser
-driver.quit()
+# Store the ID of the original window
+original_window = driver.current_window_handle
+
+# Wait for the new window or tab
+WebDriverWait(driver, 10).until(EC.number_of_windows_to_be(2))
+
+# Loop through until we find a new window handle
+for window_handle in driver.window_handles:
+    if window_handle != original_window:
+        driver.switch_to.window(window_handle)
+        break
+
+# Now that we are in the new window, perform the necessary actions
+# Example: Enter details in the form fields in the pop-up
+# Replace 'your_input_selector' and 'your_input_value' with actual selectors and values
+input_element = driver.find_element(By.CSS_SELECTOR, 'your_input_selector')
+input_element.send_keys('your_input_value')
+
+# Submit the form or perform other necessary actions
+# Replace 'your_submit_button_selector' with the actual selector
+submit_button = driver.find_element(By.CSS_SELECTOR, 'your_submit_button_selector')
+submit_button.click()
+
+# Optionally, switch back to the original window if needed
+driver.switch_to.window(original_window)
+
+# Continue with other actions or close the browser
+# driver.quit()
