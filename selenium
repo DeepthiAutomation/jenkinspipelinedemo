@@ -1,0 +1,17 @@
+from selenium import webdriver
+
+# Initialize the WebDriver (assuming you are using Firefox)
+driver = webdriver.Firefox()
+
+# Navigate to the desired webpage
+driver.get('http://example.com')
+
+# Replace 'your_tabindex_value' with the actual tabindex value you are looking for
+tabindex_value = 'your_tabindex_value'
+element = driver.find_element_by_css_selector(f'[tabindex="{tabindex_value}"]')
+
+# Do something with the element (e.g., click it, extract text, etc.)
+print(element.text)
+
+# Close the browser
+driver.quit()
