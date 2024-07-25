@@ -29,21 +29,36 @@ for window_handle in driver.window_handles:
         driver.switch_to.window(window_handle)
         break
 
-# Now that we are in the new window, perform the necessary actions
-# Replace 'your_username' and 'your_password' with actual username and password
-username = 'your_username'
-password = 'your_password'
+# Wait for the username field to be present in the new window
+username_selector = 'input[name="username"]'  # Update with the actual selector
+password_selector = 'input[name="password"]'  # Update with the actual selector
 
-# Enter the username, press TAB, enter the password, and press RETURN
-active_element = driver.switch_to.active_element
-active_element.send_keys(username)
-active_element.send_keys(Keys.TAB)
-active_element = driver.switch_to.active_element
-active_element.send_keys(password)
-active_element.send_keys(Keys.RETURN)
+try:
+    username_element = WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located((By.CSS_SELECTOR, username_selector))
+    )
+    
+    # Enter the username
+    username_element.send_keys('your_username')  # Update with the actual username
+    
+    # Press the tab key to move to the password field
+    username_element.send_keys(Keys.TAB)
 
-# Optionally, switch back to the original window if needed
-driver.switch_to.window(original_window)
+    # Wait for the password field to be present and then enter the password
+    password_element = WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located((By.CSS_SELECTOR, password_selector))
+    )
+    password_element.send_keys('your_password')  # Update with the actual password
+    
+    # Submit the form (usually pressing Enter in the password field submits the form)
+    password_element.send_keys(Keys.RETURN)
+    
+    # Optionally, switch back to the original window if needed
+    driver.switch_to.window(original_window)
+    
+except Exception as e:
+    print(f"An error occurred: {e}")
+    driver.quit()
 
 # Continue with other actions or close the browser
 # driver.quit()
