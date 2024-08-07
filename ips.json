@@ -1,0 +1,7 @@
+{
+  "address": "10.0.0.1",
+  "protocol": "tcp",
+  "portStart": 443,
+  "portEnd": 443,
+  "rangeEnd": "10.0.0.34"
+}
