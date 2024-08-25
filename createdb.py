@@ -1,0 +1,5 @@
+CREATE TABLE IF NOT EXISTS jql_queries (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT UNIQUE,
+    jql TEXT
+);
