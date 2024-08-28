@@ -26,13 +26,18 @@ app.layout = html.Div([
                     {'label': 'Sprint', 'value': 'sprint'}
                 ],
                 placeholder='Select a filter type',
-                style={'width': '100%'}
+                style={'width': '100%', 'height': '38px'}  # Set height to match input box
             ),
         ], style={'display': 'inline-block', 'width': '49%', 'verticalAlign': 'top'}),
 
         html.Div([
             html.Label("Enter Filter Value:", style={'display': 'block'}),
-            dcc.Input(id='filter-value-input', type='text', placeholder='Enter the value', style={'width': '100%'}),
+            dcc.Input(
+                id='filter-value-input', 
+                type='text', 
+                placeholder='Enter the value', 
+                style={'width': '100%', 'height': '38px'}  # Match height with dropdown
+            ),
         ], style={'display': 'inline-block', 'width': '49%', 'verticalAlign': 'top'})
     ], style={'marginBottom': '20px', 'width': '100%'}),
 
@@ -71,20 +76,3 @@ def filter_stories(n_clicks, filter_type, filter_value):
 
     # Make API request
     response = requests.get(f'{jira_url}/rest/api/2/search?jql={jql_query}&fields=summary,assignee,storyPoints,sprint', auth=('your_username', 'your_api_token'))
-    
-    # Handle the response (this is just a simulation)
-    issues = response.json().get('issues', [])
-
-    # Process the response data and create the figures
-    df = pd.DataFrame(issues)  # Simplified for example
-
-    # Create example figures
-    sprint_storypoints_fig = px.bar(df, x='sprint', y='story_points', title='Sprint vs Story Points')
-    assignee_storypoints_fig = px.bar(df, x='assignee', y='story_points', title='Assignee vs Story Points')
-    project_storypoints_pie_fig = px.pie(df, names='project', values='story_points', title='Project vs Story Points')
-
-    return sprint_storypoints_fig, assignee_storypoints_fig, project_storypoints_pie_fig
-
-# Running the app
-if __name__ == '__main__':
-    app.run_server(debug=True)
