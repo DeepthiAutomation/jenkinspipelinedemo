@@ -11,29 +11,31 @@ import requests
 # Initialize the Dash app for /stories endpoint
 app = dash.Dash(__name__, server=False)
 
-# Define the layout with a single dropdown and input box
+# Define the layout with filter type and filter value side by side
 app.layout = html.Div([
     html.H1("Stories Dashboard", style={'textAlign': 'center', 'fontFamily': 'Arial, sans-serif'}),
 
     html.Div([
-        html.Label("Select Filter Type:"),
-        dcc.Dropdown(
-            id='filter-type-dropdown',
-            options=[
-                {'label': 'Assignee', 'value': 'assignee'},
-                {'label': 'Label', 'value': 'labels'},
-                {'label': 'Epic', 'value': 'epic'},
-                {'label': 'Sprint', 'value': 'sprint'}
-            ],
-            placeholder='Select a filter type',
-            style={'marginBottom': '10px'}
-        ),
-    ]),
+        html.Div([
+            html.Label("Select Filter Type:"),
+            dcc.Dropdown(
+                id='filter-type-dropdown',
+                options=[
+                    {'label': 'Assignee', 'value': 'assignee'},
+                    {'label': 'Label', 'value': 'labels'},
+                    {'label': 'Epic', 'value': 'epic'},
+                    {'label': 'Sprint', 'value': 'sprint'}
+                ],
+                placeholder='Select a filter type',
+                style={'width': '100%'}
+            ),
+        ], style={'display': 'inline-block', 'width': '45%', 'paddingRight': '10px'}),
 
-    html.Div([
-        html.Label("Enter Filter Value:"),
-        dcc.Input(id='filter-value-input', type='text', placeholder='Enter the value', style={'marginBottom': '20px', 'width': '100%'}),
-    ]),
+        html.Div([
+            html.Label("Enter Filter Value:"),
+            dcc.Input(id='filter-value-input', type='text', placeholder='Enter the value', style={'width': '100%'}),
+        ], style={'display': 'inline-block', 'width': '45%', 'paddingLeft': '10px'})
+    ], style={'marginBottom': '20px'}),
 
     html.Button('Get Stories', id='get-stories-button', className='btn btn-success', style={'marginBottom': '20px'}),
 
