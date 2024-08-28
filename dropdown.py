@@ -5,7 +5,6 @@ from dash.dependencies import Input, Output, State
 import dash_table
 import plotly.express as px
 import pandas as pd
-import sqlite3
 import requests
 
 # Initialize the Dash app for /stories endpoint
@@ -17,7 +16,7 @@ app.layout = html.Div([
 
     html.Div([
         html.Div([
-            html.Label("Select Filter Type:"),
+            html.Label("Select Filter Type:", style={'display': 'block'}),
             dcc.Dropdown(
                 id='filter-type-dropdown',
                 options=[
@@ -29,13 +28,13 @@ app.layout = html.Div([
                 placeholder='Select a filter type',
                 style={'width': '100%'}
             ),
-        ], style={'display': 'inline-block', 'width': '45%', 'paddingRight': '10px'}),
+        ], style={'display': 'inline-block', 'width': '49%', 'verticalAlign': 'top'}),
 
         html.Div([
-            html.Label("Enter Filter Value:"),
+            html.Label("Enter Filter Value:", style={'display': 'block'}),
             dcc.Input(id='filter-value-input', type='text', placeholder='Enter the value', style={'width': '100%'}),
-        ], style={'display': 'inline-block', 'width': '45%', 'paddingLeft': '10px'})
-    ], style={'marginBottom': '20px'}),
+        ], style={'display': 'inline-block', 'width': '49%', 'verticalAlign': 'top'})
+    ], style={'marginBottom': '20px', 'width': '100%'}),
 
     html.Button('Get Stories', id='get-stories-button', className='btn btn-success', style={'marginBottom': '20px'}),
 
