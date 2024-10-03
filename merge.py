@@ -7,13 +7,16 @@ def unmerge_and_fill(excel_file, sheet_name):
     wb = load_workbook(excel_file)
     ws = wb[sheet_name]
     
-    # Iterate through all merged cells
-    for merged_cell in ws.merged_cells.ranges:
+    # Copy the merged cells ranges to a list (to avoid set size change issue)
+    merged_cells_ranges = list(ws.merged_cells.ranges)
+    
+    # Iterate through the copied list of merged cell ranges
+    for merged_cell in merged_cells_ranges:
         # Unmerge each cell
         ws.unmerge_cells(str(merged_cell))
         
         # Get the top-left cell value of the merged range
-        top_left_cell_value = ws[merged_cell.min_row][merged_cell.min_col - 1].value
+        top_left_cell_value = ws.cell(row=merged_cell.min_row, column=merged_cell.min_col).value
         
         # Fill the unmerged cells with the top-left cell value
         for row in ws.iter_rows(min_row=merged_cell.min_row, max_row=merged_cell.max_row,
