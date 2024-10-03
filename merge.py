@@ -1,7 +1,7 @@
 import pandas as pd
 from openpyxl import load_workbook
 
-# Function to handle merged cells
+# Function to handle merged cells and take only the first word from the second column
 def unmerge_and_fill(excel_file, sheet_name):
     # Load the workbook and the specific sheet
     wb = load_workbook(excel_file)
@@ -24,20 +24,4 @@ def unmerge_and_fill(excel_file, sheet_name):
             for cell in row:
                 cell.value = top_left_cell_value
     
-    # Save the modified workbook if needed
-    modified_file = 'unmerged_filled.xlsx'
-    wb.save(modified_file)
-    print(f"Unmerged and filled cells saved to: {modified_file}")
-    
-    # Return a pandas DataFrame for further manipulation
-    return pd.read_excel(modified_file, sheet_name=sheet_name)
-
-# Example usage
-excel_file = 'your_excel_file.xlsx'
-sheet_name = 'Sheet1'
-
-# Process the Excel sheet
-df = unmerge_and_fill(excel_file, sheet_name)
-
-# Display the modified DataFrame
-print(df)
+    # Save the modified workbook after unmerging
