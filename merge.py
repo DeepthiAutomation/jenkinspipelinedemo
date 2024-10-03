@@ -35,4 +35,28 @@ def unmerge_and_fill_first_word(excel_file, sheet_name):
                 for cell in row:
                     if cell.row == merged_cell.min_row and cell.column == merged_cell.min_col:
                         cell.value = top_left_cell_value
-                   
+                    else:
+                        cell.value = None  # Leave others empty
+
+    # Save the modified workbook after unmerging and filling cells
+    modified_file = 'unmerged_filled_first_word.xlsx'
+    wb.save(modified_file)
+    
+    # Load the modified Excel into a pandas DataFrame
+    df = pd.read_excel(modified_file, sheet_name=sheet_name)
+    
+    # Save the modified DataFrame back to an Excel file if needed
+    df.to_excel('unmerged_filled_first_word_processed.xlsx', index=False)
+    print(f"Unmerged and filled cells saved to: 'unmerged_filled_first_word_processed.xlsx'")
+    
+    return df
+
+# Example usage
+excel_file = 'your_excel_file.xlsx'
+sheet_name = 'Sheet1'
+
+# Process the Excel sheet
+df = unmerge_and_fill_first_word(excel_file, sheet_name)
+
+# Display the modified DataFrame
+print(df)
