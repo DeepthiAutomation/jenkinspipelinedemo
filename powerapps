@@ -1,0 +1,45 @@
+1. Core Components
+Overview of PowerApps type (Canvas/Model-Driven) used
+
+Dataverse / database layer – tables, relationships, and audit
+
+Integration components – connectors (standard/custom), APIs, Azure Functions
+
+Automation components – Power Automate flows, approvals
+
+Security components – roles, environment security, DLP policies
+
+Monitoring & logging – App Insights, CoE Kit, audit logs
+
+2. Connectivity & Interdependencies
+How PowerApps connects to Dataverse and other data sources
+
+Dependency of flows, plugins, and PCF components on core data
+
+External system integrations (APIs, SharePoint, Outlook, etc.)
+
+Security interdependencies (role-based access tied to components)
+
+Solution layering – dependencies between base, custom, and configuration solutions
+
+3. Development Approach
+Environment strategy (Dev / Test / UAT / Prod)
+
+Solution management (managed vs unmanaged solutions)
+
+Componentized development – forms, screens, flows, connectors, PCFs
+
+Coding standards (Power Fx, plugin standards, reusable components)
+
+Testing practices – Test Studio, test data management
+
+4. Deployment Pipelines
+CI/CD process overview using Power Platform CLI & Azure DevOps/GitHub Actions
+
+Solution export/import process
+
+Versioning & tagging for builds
+
+Automated data migration and configuration in pipelines
+
+Rollback and validation steps post-deployment
