@@ -38,3 +38,11 @@ traces
 | where HasError == true
 | order by operation_Id asc, timestamp asc
 
+traces
+| where operation_Id in (
+    traces
+    | where severityLevel > 2
+    | distinct operation_Id
+)
+| project operation_Id, timestamp, severityLevel, message
+| order by operation_Id asc, timestamp asc
