@@ -28,3 +28,13 @@ traces
 | where severityLevel > 2
 | order by timestamp desc
 | project timestamp, cloud_RoleName, severityLevel, message, operation_Id
+
+traces
+| summarize HasError = any(severityLevel > 2) by operation_Id
+| join kind=inner (
+    traces
+    | project operation_Id, timestamp, severityLevel, message, cloud_RoleName
+) on operation_Id
+| where HasError == true
+| order by operation_Id asc, timestamp asc
+
