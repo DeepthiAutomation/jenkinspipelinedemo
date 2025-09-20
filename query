@@ -64,3 +64,13 @@ requests
     | project timestamp, EventType = "dependency", name, target, type, resultCode, duration, success, operation_Id
 )
 | order by timestamp asc
+requests
+| where operation_Id == "xxx"
+| project RequestTime=timestamp, RequestName=name, resultCode, duration, success, operation_Id
+| join kind=inner (
+    dependencies
+    | where operation_Id == "xxx"
+    | project DependencyTime=timestamp, target, type, dependencyName=name, resultCode, duration, success, operation_Id
+) on operation_Id
+| order by DependencyTime asc
+
