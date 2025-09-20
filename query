@@ -9,3 +9,7 @@ traces
 | summarize Messages = make_list(message), Count = count() by MyId
 traces
 | summarize Messages = make_list(pack("time", timestamp, "msg", message)) by operation_Id
+traces
+| extend TraceId = operation_Id   // or replace with customDimensions.MyId
+| summarize Messages = make_list(pack("time", timestamp, "msg", message)) by TraceId
+| project TraceId, OrderedMessages = array_sort(Messages, "time")
