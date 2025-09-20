@@ -24,3 +24,7 @@ traces
 | mv-expand arr
 | order by TraceId, todatetime(arr.t) asc
 | summarize Ordered = make_list(arr) by TraceId
+traces
+| where severityLevel > 2
+| order by timestamp desc
+| project timestamp, cloud_RoleName, severityLevel, message, operation_Id
