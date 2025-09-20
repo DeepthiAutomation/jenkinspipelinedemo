@@ -1,0 +1,11 @@
+traces
+| summarize Count = count(), Earliest = min(timestamp), Latest = max(timestamp) by operation_Id
+| order by Count desc
+traces
+| extend TraceId = tostring(customDimensions.TraceId)
+| summarize Count = count(), Messages = make_list(message) by TraceId
+traces
+| extend MyId = tostring(customDimensions.MyId)
+| summarize Messages = make_list(message), Count = count() by MyId
+traces
+| summarize Messages = make_list(pack("time", timestamp, "msg", message)) by operation_Id
