@@ -13,3 +13,14 @@ traces
 | extend TraceId = operation_Id   // or replace with customDimensions.MyId
 | summarize Messages = make_list(pack("time", timestamp, "msg", message)) by TraceId
 | project TraceId, OrderedMessages = array_sort(Messages, "time")
+traces
+| extend TraceId = operation_Id   // or tostring(customDimensions.MyId)
+| order by TraceId asc, timestamp asc
+| project TraceId, timestamp, message, severityLevel
+traces
+| extend TraceId = operation_Id
+| project TraceId, timestamp, message
+| summarize arr = make_list(pack("t", timestamp, "m", message)) by TraceId
+| mv-expand arr
+| order by TraceId, todatetime(arr.t) asc
+| summarize Ordered = make_list(arr) by TraceId
