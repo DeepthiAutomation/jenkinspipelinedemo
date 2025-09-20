@@ -55,3 +55,12 @@ requests
     | project timestamp, kind="dependency", name, resultCode, duration, success, operation_Id
 )
 | order by timestamp asc
+requests
+| where operation_Id == "xxx"
+| project timestamp, EventType = "request", name, resultCode, duration, success, operation_Id
+| union (
+    dependencies
+    | where operation_Id == "xxx"
+    | project timestamp, EventType = "dependency", name, target, type, resultCode, duration, success, operation_Id
+)
+| order by timestamp asc
