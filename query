@@ -46,3 +46,12 @@ traces
 )
 | project operation_Id, timestamp, severityLevel, message
 | order by operation_Id asc, timestamp asc
+requests
+| where operation_Id == "PUT-YOUR-OPERATION-ID-HERE"
+| project timestamp, kind="request", name, resultCode, duration, success, operation_Id
+| union (
+    dependencies
+    | where operation_Id == "PUT-YOUR-OPERATION-ID-HERE"
+    | project timestamp, kind="dependency", name, resultCode, duration, success, operation_Id
+)
+| order by timestamp asc
