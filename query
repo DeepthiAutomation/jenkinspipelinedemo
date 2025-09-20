@@ -74,3 +74,11 @@ requests
 ) on operation_Id
 | order by DependencyTime asc
 
+requests
+| project operation_Id, RequestId = id, RequestName = name, RequestTime = timestamp
+| join kind=inner (
+    dependencies
+    | project operation_Id, DependencyId = id, DependencyName = name, operation_ParentId, DependencyTime = timestamp
+) on operation_Id
+| where operation_ParentId == RequestId
+| order by RequestTime asc, DependencyTime asc
