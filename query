@@ -82,3 +82,10 @@ requests
 ) on operation_Id
 | where operation_ParentId == RequestId
 | order by RequestTime asc, DependencyTime asc
+exceptions
+| join kind=inner (
+    dependencies
+    | project DependencyName=name, target, type, DependencyTime=timestamp, operation_Id
+) on operation_Id
+| project ExceptionTime=timestamp, type, message, DependencyName, target, type1=type, DependencyTime, operation_Id
+| order by ExceptionTime asc
