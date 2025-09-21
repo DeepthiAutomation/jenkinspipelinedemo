@@ -75,6 +75,17 @@ requests
 | order by DependencyTime asc
 
 requests
+| where toint(resultCode) >= 400
+| project RequestTime=timestamp, RequestName=name, RequestResult=resultCode, operation_Id
+| join kind=inner (
+    dependencies
+    | project DependencyTime=timestamp, DependencyName=name, target, type, DependencyResult=resultCode, operation_Id
+) on operation_Id
+| project operation_Id, RequestName, RequestResult, DependencyName, target, type, DependencyResult, RequestTime, DependencyTime
+| order by RequestTime asc, DependencyTime asc
+
+
+requests
 | project operation_Id, RequestId = id, RequestName = name, RequestTime = timestamp
 | join kind=inner (
     dependencies
