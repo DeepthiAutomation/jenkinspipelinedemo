@@ -100,3 +100,14 @@ exceptions
 ) on operation_Id
 | project ExceptionTime=timestamp, type, message, DependencyName, target, type1=type, DependencyTime, operation_Id
 | order by ExceptionTime asc
+
+requests
+| where toint(resultCode) >= 400
+| project RequestTime=timestamp, RequestName=name, RequestResult=resultCode, operation_Id
+| join kind=inner (
+    dependencies
+    | project DependencyTime=timestamp, DependencyName=name, target, type, DependencyResult=resultCode, operation_Id
+) on operation_Id
+| project operation_Id, RequestName, RequestResult, DependencyName, target, type, DependencyResult, RequestTime, DependencyTime
+| order by RequestTime asc, DependencyTime asc
+
