@@ -110,4 +110,13 @@ requests
 ) on operation_Id
 | project operation_Id, RequestName, RequestResult, DependencyName, target, type, DependencyResult, RequestTime, DependencyTime
 | order by RequestTime asc, DependencyTime asc
+exceptions
+| project ExceptionTime=timestamp, ExceptionType=type, ExceptionMessage=message, operation_Id
+| join kind=inner (
+    dependencies
+    | where name contains "SQL"   // 👈 filter dependency name
+    | project DependencyTime=timestamp, DependencyName=name, target, DependencyResult=resultCode, operation_Id
+) on operation_Id
+| project operation_Id, DependencyName, DependencyResult, ExceptionType, ExceptionMessage, DependencyTime, ExceptionTime
+| order by ExceptionTime asc
 
