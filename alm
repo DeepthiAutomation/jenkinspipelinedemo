@@ -1,0 +1,170 @@
+Yes, what you’re doing is very common, but it’s more of an “environment-driven” ALM pattern. The more mature / recommended approach in Power Platform is “branch-driven” ALM, where deployable artifacts are generated from the branch, not from the lower environment.
+
+Let’s unpack that in simple terms.
+
+💡 What you have today
+
+From what you described:
+
+Changes are made in lower environments (e.g., Dev).
+
+Solutions are exported from Dev → Test → Prod.
+
+You have Git branches for version control, but:
+
+The real deployable thing (solution zip) is coming from the environment,
+
+Not built from the code in the branch.
+
+This means:
+
+Git = mainly backup/history of the solution (or unpacked solution),
+
+Environments = source of truth for what gets deployed.
+
+✅ This is very common in many PowerApps setups, especially:
+
+Early-stage ALM
+
+When pipelines & PAC CLI are not fully adopted
+
+When citizen devs and CoE are still maturing
+
+❌ But it’s not ideal once you care about:
+
+Strict versioning
+
+Repeatable builds
+
+Regulated / audited change processes
+
+🧱 Two ALM Models in PowerApps
+1️⃣ Environment-Driven ALM (your current pattern)
+
+Flow:
+
+Build & tweak in Dev environment
+
+Export solution from Dev
+
+Import solution into Test/Prod
+
+Optionally check the solution (or unpacked folder) into Git
+
+Pros:
+
+Easy to understand
+
+Fast to get started
+
+Makers work directly in Dev
+
+Cons:
+
+Git isn’t the real source of truth
+
+Harder to reproduce exact solution from code
+
+Risk of “works in Dev but not traceable in repo”
+
+Hotfixes can bypass repo
+
+2️⃣ Branch-Driven ALM (recommended / mature pattern)
+
+Here, Git (main branch) is the source of truth, and environments simply consume artifacts built from that branch.
+
+Typical flow:
+
+Dev environment
+
+Makers build and test features.
+
+Export unmanaged solution.
+
+Unpack and commit into Git (feature branch).
+
+Version control & review
+
+Use branches + PRs.
+
+Code review and validation.
+
+Build pipeline (CI)
+
+From the main branch, use PAC CLI to:
+
+pack-solution from the repo
+
+Create the Managed Solution ZIP – this is your artifact.
+
+Release pipeline (CD)
+
+Deploy that artifact to:
+
+Test / UAT
+
+Prod
+
+Here, artifacts are generated from the branch, not directly exported from environments.
+
+Pros:
+
+Git truly reflects what’s in Prod
+
+Rebuild & redeploy any version from history
+
+Safer, more compliant ALM
+
+Easier to integrate with Azure DevOps / GitHub Actions pipelines
+
+Cons:
+
+More setup effort initially
+
+Makers must align with ALM rules
+
+🧭 So, is your setup “wrong”?
+
+No, it’s not wrong and yes, it’s very common:
+
+✅ Common: solutions exported directly from Dev/Test to higher envs
+
+✅ Common: branches used only for “storage” / backups of the solution
+
+❌ Less common (but better): pipelines building artifacts only from the repo (branch).
+
+Think of it like this:
+
+Now: “Whatever is in Dev is what we ship”
+
+Mature: “Whatever is in main is what we ship”
+
+🚀 How you could evolve (if you choose to)
+
+If you want to move to a branch-driven model over time:
+
+Unpack solutions into Git (per solution)
+
+Make main the canonical version of a solution’s source
+
+Create a CI pipeline to:
+
+Pack the solution from main
+
+Produce managed solution ZIP as artifact
+
+Create a CD pipeline to:
+
+Take that artifact
+
+Import into Test/Prod
+
+You don’t have to switch everything at once—start with one key app/solution as a pilot.
+
+If you tell me:
+
+How many environments you have (Dev/Test/Prod/Sandbox/etc.)
+
+Whether you’re using Azure DevOps or GitHub
+
+I can sketch a concrete PowerApps ALM pipeline tailored to your setup, step by step.
